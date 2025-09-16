@@ -203,14 +203,20 @@ ls -la /var/www/html/installer/client/dist/ | head -5\n\
 echo "📦 Composer vendor:"\n\
 ls -la /var/www/html/src/vendor/ | head -5\n\
 \n\
-# Ejecutar setup de Portos International en background\n\
-echo "🔧 Ejecutando configuración de Portos International..."\n\
-if [ -f "/var/www/html/scripts/setup-portos.sh" ]; then\n\
+# Ejecutar instalación automática de Portos International\n\
+echo "🚀 Ejecutando instalación automática de Portos International..."\n\
+if [ -f "/var/www/html/scripts/auto-install-portos.sh" ]; then\n\
+    chmod +x /var/www/html/scripts/auto-install-portos.sh\n\
+    /var/www/html/scripts/auto-install-portos.sh > /var/log/portos-installation.log 2>&1 &\n\
+    echo "✅ Instalación automática iniciada - ver /var/log/portos-installation.log"\n\
+    echo "⏳ La instalación tomará 2-3 minutos en completarse"\n\
+elif [ -f "/var/www/html/scripts/setup-portos.sh" ]; then\n\
     chmod +x /var/www/html/scripts/setup-portos.sh\n\
     /var/www/html/scripts/setup-portos.sh > /var/log/portos-setup.log 2>&1 &\n\
-    echo "✅ Setup iniciado en background - ver /var/log/portos-setup.log"\n\
+    echo "✅ Setup básico iniciado - ver /var/log/portos-setup.log"\n\
 else\n\
-    echo "⚠️ Script de setup no encontrado, iniciando solo Apache"\n\
+    echo "⚠️ Scripts de instalación no encontrados, iniciando solo Apache"\n\
+    echo "🔧 Completar instalación manualmente via web interface"\n\
 fi\n\
 \n\
 # Iniciar Apache INMEDIATAMENTE\n\

@@ -144,12 +144,35 @@ echo ""
 echo "🎨 Paso 5/6: Aplicando configuraciones personalizadas..."
 
 # Crear directorios necesarios
-mkdir -p /var/www/html/src/config
+mkdir -p /var/www/html/src/config/custom
 mkdir -p /var/www/html/src/cache
 mkdir -p /var/www/html/src/log
 
+# Aplicar configuraciones SQL personalizadas si la instalación fue exitosa
+if [ "$INSTALLATION_SUCCESS" = true ]; then
+    echo "🗄️ Aplicando estructura organizacional..."
+    if [ -f "/var/www/html/scripts/sql/01_portos_organization.sql" ]; then
+        PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /var/www/html/scripts/sql/01_portos_organization.sql
+        echo "✅ Estructura organizacional aplicada"
+    fi
+    
+    echo "👥 Aplicando datos de empleados..."
+    if [ -f "/var/www/html/scripts/sql/02_portos_employees.sql" ]; then
+        PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /var/www/html/scripts/sql/02_portos_employees.sql
+        echo "✅ Empleados demo importados"
+    fi
+    
+    echo "🔧 Aplicando campos personalizados..."
+    if [ -f "/var/www/html/scripts/sql/03_portos_custom_fields.sql" ]; then
+        PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /var/www/html/scripts/sql/03_portos_custom_fields.sql
+        echo "✅ Campos personalizados configurados"
+    fi
+else
+    echo "⚠️ Configuraciones SQL preparadas para aplicar después de la instalación"
+fi
+
 # Configuración básica
-cat > /var/www/html/src/config/portos_config.php <<EOF
+cat > /var/www/html/src/config/custom/portos_config.php <<EOF
 <?php
 // Configuración personalizada para Portos International
 return [
@@ -167,24 +190,48 @@ return [
         'timezone' => 'America/Mexico_City',
         'locale' => 'es_MX',
         'currency' => 'MXN',
-        'industry' => 'Freight Forwarding',
+        'industry' => 'Freight Forwarding & Logistics',
         'address' => 'Monterrey, Nuevo León, México',
         'phone' => '+52 81 1234 5678',
         'email' => 'info@portosinternational.com',
+        'website' => 'https://www.portosinternational.com',
+        'established' => '2010',
+        'employees' => 25,
+        'certifications' => ['ISO 9001:2015', 'CTPAT', 'OEA', 'IATA Cargo Agent'],
+        'trade_lanes' => ['Mexico-USA', 'Asia-Mexico', 'Europe-Mexico', 'South America-Mexico'],
+        'services' => [
+            'Ocean Freight (FCL/LCL)',
+            'Air Freight',
+            'Ground Transportation', 
+            'Customs Brokerage',
+            'Warehousing & Distribution',
+            'Project Cargo',
+            'Insurance Services'
+        ]
     ],
     'portos' => [
         'api_enabled' => true,
         'dashboard_enabled' => true,
         'certifications_enabled' => true,
-        'trade_lanes' => ['US-Mexico', 'Asia-Mexico', 'Europe-Mexico'],
+        'tracking_enabled' => true,
+        'edi_enabled' => true,
         'departments' => [
             'Administración',
             'Operaciones Marítimas', 
             'Operaciones Aéreas',
             'Operaciones Terrestres',
-            'Comercial/Customer Service',
-            'Compliance/Legal'
+            'Customer Service',
+            'Compliance & Legal',
+            'Almacén & Logística',
+            'IT & Sistemas',
+            'Recursos Humanos'
         ],
+        'locations' => [
+            'Oficina Principal Monterrey',
+            'Almacén Monterrey Norte',
+            'Oficina Laredo TX',
+            'Almacén Nuevo Laredo'
+        ]
     ]
 ];
 EOF
