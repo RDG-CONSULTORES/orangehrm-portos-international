@@ -1,0 +1,48 @@
+# Portos International API Routes
+# Rutas personalizadas para APIs del dashboard
+
+# Dashboard APIs
+portos_dashboard_cumpleanos:
+    path: /api/v2/portos/dashboard/cumpleanos
+    methods: [GET]
+    controller: OrangeHRM\Portos\Api\v2\PortosDashboardAPI::getUpcomingBirthdays
+
+portos_dashboard_kpis:
+    path: /api/v2/portos/dashboard/kpis-basicos
+    methods: [GET]
+    controller: OrangeHRM\Portos\Api\v2\PortosDashboardAPI::getBasicKPIs
+
+portos_dashboard_disponibilidad:
+    path: /api/v2/portos/dashboard/disponibilidad
+    methods: [GET]
+    controller: OrangeHRM\Portos\Api\v2\PortosDashboardAPI::getAll
+
+# Announcements APIs
+portos_dashboard_anuncios:
+    path: /api/v2/portos/dashboard/anuncios
+    methods: [GET]
+    controller: OrangeHRM\Portos\Api\v2\PortosAnnouncementsAPI::getAll
+
+portos_anuncios_detail:
+    path: /api/v2/portos/dashboard/anuncios/{id}
+    methods: [GET]
+    controller: OrangeHRM\Portos\Api\v2\PortosAnnouncementsAPI::getOne
+    requirements:
+        id: '\d+'
+
+# Compliance APIs
+portos_compliance_certificaciones:
+    path: /api/v2/portos/compliance/certificaciones
+    methods: [GET]
+    controller: OrangeHRM\Portos\Api\v2\PortosComplianceAPI::getAll
+
+portos_compliance_summary:
+    path: /api/v2/portos/compliance/departmental-summary
+    methods: [GET]
+    controller: OrangeHRM\Portos\Api\v2\PortosComplianceAPI::getOne
+
+# General info endpoint
+portos_api_info:
+    path: /api/v2/portos
+    methods: [GET]
+    controller: OrangeHRM\Portos\Api\v2\PortosDashboardAPI::getAll
