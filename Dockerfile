@@ -24,7 +24,7 @@ RUN set -ex; \
 		git \
 		curl \
 		locales \
-		mariadb-client \
+		postgresql-client \
 	; \
 	\
 	# Configurar timezone y locale
@@ -122,29 +122,36 @@ RUN echo '<VirtualHost *:80>\n\
 
 # Script de inicio para Render
 RUN echo '#!/bin/bash\n\
+set -e\n\
 echo "🚀 Starting OrangeHRM for Portos International..."\n\
 echo "📍 Location: Monterrey, N.L., México"\n\
 echo "🕐 Timezone: $TZ"\n\
 echo "🏢 Organization: ${ORANGEHRM_ORGANIZATION_NAME}"\n\
 \n\
-# Configurar puerto de Render\n\
-if [ -n "$PORT" ]; then\n\
-    sed -i "s/:80/:$PORT/g" /etc/apache2/sites-available/000-default.conf\n\
-    sed -i "s/Listen 80/Listen $PORT/g" /etc/apache2/ports.conf\n\
-fi\n\
+# Configurar puerto de Render PRIMERO\n\
+PORT=${PORT:-10000}\n\
+echo "🔌 Configuring Apache for port $PORT"\n\
+sed -i "s/Listen 80/Listen $PORT/g" /etc/apache2/ports.conf\n\
+sed -i "s/:80/:$PORT/g" /etc/apache2/sites-available/000-default.conf\n\
+sed -i "s/VirtualHost \*:80/VirtualHost *:$PORT/g" /etc/apache2/sites-available/000-default.conf\n\
 \n\
-# Ejecutar setup inicial si es necesario\n\
+# Verificar configuración de Apache\n\
+echo "🔍 Apache configuration:"\n\
+grep "Listen" /etc/apache2/ports.conf\n\
+grep "VirtualHost" /etc/apache2/sites-available/000-default.conf\n\
+\n\
+# Ejecutar setup inicial SOLO si no está instalado\n\
 if [ ! -f /var/www/html/.installed ]; then\n\
     echo "🔧 Running initial setup..."\n\
     if [ -f /var/www/html/scripts/setup-portos.sh ]; then\n\
-        bash /var/www/html/scripts/setup-portos.sh\n\
+        timeout 300 bash /var/www/html/scripts/setup-portos.sh || echo "⚠️ Setup timeout, continuing..."\n\
     fi\n\
     touch /var/www/html/.installed\n\
 fi\n\
 \n\
-# Iniciar Apache\n\
-echo "✅ Starting Apache..."\n\
-apache2-foreground' > /usr/local/bin/start.sh
+# Iniciar Apache EN PRIMER PLANO\n\
+echo "✅ Starting Apache on port $PORT..."\n\
+exec apache2-foreground' > /usr/local/bin/start.sh
 
 RUN chmod +x /usr/local/bin/start.sh
 

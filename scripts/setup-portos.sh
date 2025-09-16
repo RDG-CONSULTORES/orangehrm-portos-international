@@ -12,21 +12,18 @@ echo "🏢 Industria: Freight Forwarding"
 echo "👥 Empleados: 25"
 echo ""
 
-# Esperar a que la base de datos esté lista
-echo "⏳ Esperando conexión a base de datos..."
-until mysql -h"$ORANGEHRM_DATABASE_HOST" -u"$ORANGEHRM_DATABASE_USER" -p"$ORANGEHRM_DATABASE_PASSWORD" -e "SELECT 1" &> /dev/null
+# Esperar a que la base de datos esté lista (PostgreSQL)
+echo "⏳ Esperando conexión a base de datos PostgreSQL..."
+export PGPASSWORD="$ORANGEHRM_DATABASE_PASSWORD"
+until psql -h"$ORANGEHRM_DATABASE_HOST" -U"$ORANGEHRM_DATABASE_USER" -d"$ORANGEHRM_DATABASE_NAME" -c "SELECT 1;" &> /dev/null
 do
     echo -n "."
     sleep 2
 done
-echo " ✅ Conectado!"
+echo " ✅ Conectado a PostgreSQL!"
 
-# Crear base de datos si no existe
-echo "📊 Preparando base de datos..."
-mysql -h"$ORANGEHRM_DATABASE_HOST" -u"$ORANGEHRM_DATABASE_USER" -p"$ORANGEHRM_DATABASE_PASSWORD" <<EOF
-CREATE DATABASE IF NOT EXISTS $ORANGEHRM_DATABASE_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci;
-USE $ORANGEHRM_DATABASE_NAME;
-EOF
+# La base de datos ya existe en Render, no necesitamos crearla
+echo "📊 Base de datos PostgreSQL lista..."
 
 # Instalar esquema base de OrangeHRM
 if [ -f "/var/www/html/installer/sql/orangehrm-schema.sql" ]; then
@@ -36,28 +33,8 @@ else
     echo "⚠️  No se encontró el archivo de esquema base"
 fi
 
-# Cargar estructura organizacional completa
-if [ -f "/var/www/html/scripts/portos-structure.sql" ]; then
-    echo "🏢 Cargando estructura organizacional de Portos..."
-    mysql -h"$ORANGEHRM_DATABASE_HOST" -u"$ORANGEHRM_DATABASE_USER" -p"$ORANGEHRM_DATABASE_PASSWORD" "$ORANGEHRM_DATABASE_NAME" < /var/www/html/scripts/portos-structure.sql
-    echo "✅ Estructura organizacional cargada!"
-else
-    # Configuración básica si no existe el archivo completo
-    echo "🔧 Aplicando configuraciones básicas..."
-    mysql -h"$ORANGEHRM_DATABASE_HOST" -u"$ORANGEHRM_DATABASE_USER" -p"$ORANGEHRM_DATABASE_PASSWORD" "$ORANGEHRM_DATABASE_NAME" <<'EOF'
-
--- Configuración mínima de la organización
-INSERT INTO ohrm_organization_gen_info (name, country, phone, email) 
-VALUES ('Portos International', 'MX', '+52 81 8123 4567', 'info@portosinternational.com')
-ON DUPLICATE KEY UPDATE name=VALUES(name);
-
--- Usuario administrador
-INSERT INTO ohrm_user (id, user_role_id, emp_number, user_name, user_password, date_entered, date_modified, created_by) 
-VALUES (1, 1, 1, 'admin', MD5('admin123'), NOW(), NOW(), 1)
-ON DUPLICATE KEY UPDATE user_name=VALUES(user_name);
-
-EOF
-fi
+# Saltar configuración de BD por ahora - solo crear archivo de config
+echo "⚠️ Saltando configuración de BD por ahora - PostgreSQL requiere configuración diferente"
 
 echo "✅ Configuración base completada!"
 
