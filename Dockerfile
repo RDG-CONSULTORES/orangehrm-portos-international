@@ -20,6 +20,7 @@ RUN set -ex; \
 		libzip-dev \
 		libldap2-dev \
 		libicu-dev \
+		libpq-dev \
 		unzip \
 		git \
 		curl \
@@ -43,6 +44,8 @@ RUN set -ex; \
 		opcache \
 		intl \
 		pdo_mysql \
+		pdo_pgsql \
+		pgsql \
 		mysqli \
 		zip \
 		ldap \
@@ -138,21 +141,26 @@ cat > /etc/apache2/sites-available/000-default.conf << EOF2\n\
         Options Indexes FollowSymLinks\n\
         AllowOverride All\n\
         Require all granted\n\
-        DirectoryIndex index.html index.php\n\
+        DirectoryIndex index.php index.html\n\
     </Directory>\n\
     ErrorLog \${APACHE_LOG_DIR}/error.log\n\
     CustomLog \${APACHE_LOG_DIR}/access.log combined\n\
 </VirtualHost>\n\
 EOF2\n\
 \n\
-# Crear index.html simple para testing\n\
-echo "<h1>🚀 Portos International HR System</h1><p>Sistema funcionando en puerto $PORT</p><p>Monterrey, N.L. México</p>" > /var/www/html/index.html\n\
-\n\
 # Verificar configuración\n\
 echo "📋 Apache config:"\n\
 cat /etc/apache2/ports.conf\n\
-echo "📋 VirtualHost:"\n\
-grep -A5 "VirtualHost" /etc/apache2/sites-available/000-default.conf\n\
+\n\
+# Ejecutar setup de Portos International en background\n\
+echo "🔧 Ejecutando configuración de Portos International..."\n\
+if [ -f "/var/www/html/scripts/setup-portos.sh" ]; then\n\
+    chmod +x /var/www/html/scripts/setup-portos.sh\n\
+    /var/www/html/scripts/setup-portos.sh > /var/log/portos-setup.log 2>&1 &\n\
+    echo "✅ Setup iniciado en background - ver /var/log/portos-setup.log"\n\
+else\n\
+    echo "⚠️ Script de setup no encontrado, iniciando solo Apache"\n\
+fi\n\
 \n\
 # Iniciar Apache INMEDIATAMENTE\n\
 echo "🎯 Starting Apache on port $PORT NOW..."\n\
