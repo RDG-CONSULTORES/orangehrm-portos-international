@@ -170,10 +170,13 @@ cat > /etc/apache2/sites-available/000-default.conf << EOF2\n\
         Require all granted\n\
     </Directory>\n\
     \n\
-    # Configuración para archivos CSS/JS\n\
-    <FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$">\n\
-        Header unset Content-Type\n\
-        Header set Content-Type ""\n\
+    # Configuración MIME correcta para archivos estáticos\n\
+    <FilesMatch "\.(css)$">\n\
+        Header always set Content-Type "text/css"\n\
+    </FilesMatch>\n\
+    \n\
+    <FilesMatch "\.(js)$">\n\
+        Header always set Content-Type "application/javascript"\n\
     </FilesMatch>\n\
     \n\
     # Tipos MIME específicos\n\
