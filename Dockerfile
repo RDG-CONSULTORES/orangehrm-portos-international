@@ -137,12 +137,36 @@ cat > /etc/apache2/sites-available/000-default.conf << EOF2\n\
 <VirtualHost *:$PORT>\n\
     ServerName localhost\n\
     DocumentRoot /var/www/html\n\
+    \n\
+    # Configuración principal\n\
     <Directory /var/www/html>\n\
         Options Indexes FollowSymLinks\n\
         AllowOverride All\n\
         Require all granted\n\
         DirectoryIndex index.php index.html\n\
     </Directory>\n\
+    \n\
+    # Configuración para archivos estáticos del instalador\n\
+    <Directory /var/www/html/installer>\n\
+        Options Indexes FollowSymLinks\n\
+        AllowOverride All\n\
+        Require all granted\n\
+    </Directory>\n\
+    \n\
+    # Configuración para archivos CSS/JS\n\
+    <FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$">\n\
+        Header unset Content-Type\n\
+        Header set Content-Type ""\n\
+    </FilesMatch>\n\
+    \n\
+    # Tipos MIME específicos\n\
+    AddType text/css .css\n\
+    AddType application/javascript .js\n\
+    AddType image/png .png\n\
+    AddType image/jpeg .jpg .jpeg\n\
+    AddType image/gif .gif\n\
+    AddType image/x-icon .ico\n\
+    \n\
     ErrorLog \${APACHE_LOG_DIR}/error.log\n\
     CustomLog \${APACHE_LOG_DIR}/access.log combined\n\
 </VirtualHost>\n\
