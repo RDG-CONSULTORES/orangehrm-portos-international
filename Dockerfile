@@ -140,14 +140,12 @@ echo "🔍 Apache configuration:"\n\
 grep "Listen" /etc/apache2/ports.conf\n\
 grep "VirtualHost" /etc/apache2/sites-available/000-default.conf\n\
 \n\
-# Ejecutar setup inicial SOLO si no está instalado\n\
-if [ ! -f /var/www/html/.installed ]; then\n\
-    echo "🔧 Running initial setup..."\n\
-    if [ -f /var/www/html/scripts/setup-portos.sh ]; then\n\
-        timeout 300 bash /var/www/html/scripts/setup-portos.sh || echo "⚠️ Setup timeout, continuing..."\n\
-    fi\n\
-    touch /var/www/html/.installed\n\
+# Ejecutar setup inicial RÁPIDO\n\
+echo "🔧 Running minimal setup..."\n\
+if [ -f /var/www/html/scripts/setup-portos.sh ]; then\n\
+    timeout 30 bash /var/www/html/scripts/setup-portos.sh || echo "⚠️ Setup timeout, continuing..."\n\
 fi\n\
+touch /var/www/html/.installed\n\
 \n\
 # Iniciar Apache EN PRIMER PLANO\n\
 echo "✅ Starting Apache on port $PORT..."\n\

@@ -12,52 +12,14 @@ echo "🏢 Industria: Freight Forwarding"
 echo "👥 Empleados: 25"
 echo ""
 
-# Esperar a que la base de datos esté lista (PostgreSQL)
-echo "⏳ Esperando conexión a base de datos PostgreSQL..."
-export PGPASSWORD="$ORANGEHRM_DATABASE_PASSWORD"
-until psql -h"$ORANGEHRM_DATABASE_HOST" -U"$ORANGEHRM_DATABASE_USER" -d"$ORANGEHRM_DATABASE_NAME" -c "SELECT 1;" &> /dev/null
-do
-    echo -n "."
-    sleep 2
-done
-echo " ✅ Conectado a PostgreSQL!"
-
-# La base de datos ya existe en Render, no necesitamos crearla
-echo "📊 Base de datos PostgreSQL lista..."
-
-# Instalar esquema base de OrangeHRM
-if [ -f "/var/www/html/installer/sql/orangehrm-schema.sql" ]; then
-    echo "📋 Instalando esquema base de OrangeHRM..."
-    mysql -h"$ORANGEHRM_DATABASE_HOST" -u"$ORANGEHRM_DATABASE_USER" -p"$ORANGEHRM_DATABASE_PASSWORD" "$ORANGEHRM_DATABASE_NAME" < /var/www/html/installer/sql/orangehrm-schema.sql
-else
-    echo "⚠️  No se encontró el archivo de esquema base"
-fi
-
-# Saltar configuración de BD por ahora - solo crear archivo de config
-echo "⚠️ Saltando configuración de BD por ahora - PostgreSQL requiere configuración diferente"
+# TEMPORAL: Saltar configuración de BD para que funcione Apache
+echo "⚠️ MODO TEMPORAL: Saltando configuración de BD para testing"
+echo "📊 Configurando solo archivos básicos..."
 
 echo "✅ Configuración base completada!"
 
-# Aplicar localización en español mexicano
-if [ -f "/var/www/html/scripts/spanish-localization.sql" ]; then
-    echo "🇲🇽 Configurando español mexicano..."
-    mysql -h"$ORANGEHRM_DATABASE_HOST" -u"$ORANGEHRM_DATABASE_USER" -p"$ORANGEHRM_DATABASE_PASSWORD" "$ORANGEHRM_DATABASE_NAME" < /var/www/html/scripts/spanish-localization.sql
-    echo "✅ Localización mexicana aplicada!"
-fi
-
-# Cargar campos personalizados freight forwarding
-if [ -f "/var/www/html/scripts/custom-fields.sql" ]; then
-    echo "📋 Configurando campos personalizados freight forwarding..."
-    mysql -h"$ORANGEHRM_DATABASE_HOST" -u"$ORANGEHRM_DATABASE_USER" -p"$ORANGEHRM_DATABASE_PASSWORD" "$ORANGEHRM_DATABASE_NAME" < /var/www/html/scripts/custom-fields.sql
-    echo "✅ Campos personalizados configurados!"
-fi
-
-# Cargar datos de prueba si existe el archivo
-if [ -f "/var/www/html/scripts/demo-data.sql" ]; then
-    echo "📥 Cargando datos de prueba (25 empleados)..."
-    mysql -h"$ORANGEHRM_DATABASE_HOST" -u"$ORANGEHRM_DATABASE_USER" -p"$ORANGEHRM_DATABASE_PASSWORD" "$ORANGEHRM_DATABASE_NAME" < /var/www/html/scripts/demo-data.sql
-    echo "✅ Datos de prueba cargados!"
-fi
+# TEMPORAL: Saltar configuraciones de BD
+echo "⚠️ Saltando configuraciones SQL por ahora"
 
 # Crear archivo de configuración
 echo "📝 Creando archivo de configuración..."
