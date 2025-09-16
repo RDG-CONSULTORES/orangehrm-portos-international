@@ -120,39 +120,46 @@ RUN echo '<VirtualHost *:80>\n\
     CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
 </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
-# Script de inicio para Render
+# Script de inicio SIMPLE para Render
 RUN echo '#!/bin/bash\n\
 set -e\n\
-echo "🚀 Starting OrangeHRM for Portos International..."\n\
-echo "📍 Location: Monterrey, N.L., México"\n\
-echo "🕐 Timezone: $TZ"\n\
-echo "🏢 Organization: ${ORANGEHRM_ORGANIZATION_NAME}"\n\
 \n\
-# Configurar puerto de Render PRIMERO\n\
+# Configurar puerto INMEDIATAMENTE\n\
 PORT=${PORT:-10000}\n\
-echo "🔌 Configuring Apache for port $PORT"\n\
-sed -i "s/Listen 80/Listen $PORT/g" /etc/apache2/ports.conf\n\
-sed -i "s/:80/:$PORT/g" /etc/apache2/sites-available/000-default.conf\n\
-sed -i "s/VirtualHost \*:80/VirtualHost *:$PORT/g" /etc/apache2/sites-available/000-default.conf\n\
+echo "🚀 Portos International - Starting on port $PORT"\n\
 \n\
-# Verificar configuración de Apache\n\
-echo "🔍 Apache configuration:"\n\
-grep "Listen" /etc/apache2/ports.conf\n\
-grep "VirtualHost" /etc/apache2/sites-available/000-default.conf\n\
+# Configurar Apache para el puerto de Render\n\
+echo "Listen $PORT" > /etc/apache2/ports.conf\n\
+cat > /etc/apache2/sites-available/000-default.conf << EOF2\n\
+<VirtualHost *:$PORT>\n\
+    ServerName localhost\n\
+    DocumentRoot /var/www/html\n\
+    <Directory /var/www/html>\n\
+        Options Indexes FollowSymLinks\n\
+        AllowOverride All\n\
+        Require all granted\n\
+        DirectoryIndex index.html index.php\n\
+    </Directory>\n\
+    ErrorLog \${APACHE_LOG_DIR}/error.log\n\
+    CustomLog \${APACHE_LOG_DIR}/access.log combined\n\
+</VirtualHost>\n\
+EOF2\n\
 \n\
-# Ejecutar setup inicial RÁPIDO\n\
-echo "🔧 Running minimal setup..."\n\
-if [ -f /var/www/html/scripts/setup-portos.sh ]; then\n\
-    timeout 30 bash /var/www/html/scripts/setup-portos.sh || echo "⚠️ Setup timeout, continuing..."\n\
-fi\n\
-touch /var/www/html/.installed\n\
+# Crear index.html simple para testing\n\
+echo "<h1>🚀 Portos International HR System</h1><p>Sistema funcionando en puerto $PORT</p><p>Monterrey, N.L. México</p>" > /var/www/html/index.html\n\
 \n\
-# Iniciar Apache EN PRIMER PLANO\n\
-echo "✅ Starting Apache on port $PORT..."\n\
+# Verificar configuración\n\
+echo "📋 Apache config:"\n\
+cat /etc/apache2/ports.conf\n\
+echo "📋 VirtualHost:"\n\
+grep -A5 "VirtualHost" /etc/apache2/sites-available/000-default.conf\n\
+\n\
+# Iniciar Apache INMEDIATAMENTE\n\
+echo "🎯 Starting Apache on port $PORT NOW..."\n\
 exec apache2-foreground' > /usr/local/bin/start.sh
 
 RUN chmod +x /usr/local/bin/start.sh
 
-EXPOSE 80
+EXPOSE 10000
 
 CMD ["/usr/local/bin/start.sh"]
