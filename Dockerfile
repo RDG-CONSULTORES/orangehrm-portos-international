@@ -126,6 +126,12 @@ WORKDIR /var/www/html
 RUN composer install -d src --no-dev --optimize-autoloader && \
     echo "✅ Dependencias de Composer instaladas"
 
+# Configurar OrangeHRM para PostgreSQL
+RUN echo "🔧 Configurando OrangeHRM para PostgreSQL..." && \
+    # Crear archivo de configuración para forzar PostgreSQL
+    mkdir -p src/config && \
+    echo '<?php return ["database" => ["driver" => "pdo_pgsql"]];' > src/config/database.php
+
 # Configurar VirtualHost para Render
 RUN echo '<VirtualHost *:80>\n\
     ServerName portos-international-rh.onrender.com\n\
