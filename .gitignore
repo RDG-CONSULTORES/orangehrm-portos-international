@@ -1,15 +1,71 @@
-.idea
-.vscode
+# OrangeHRM Portos International - GitIgnore
+
+# IDE
+.idea/
+.vscode/
+*.sublime-*
+
+# Configuración
 lib/confs/
-src/cache/
 src/config/
-src/log/
+.env
+.env.local
+.env.render
+config/config.php
+
+# Caché y logs
+src/cache/*
+src/log/*
+!src/cache/.gitkeep
+!src/log/.gitkeep
+
+# Dependencias
+src/vendor/
+node_modules/
 web/dist/
-src/vendor
-apidoc
-logInsatall.log
+
+# Testing
 .phpunit.result.cache
 coverage/
 src/plugins/orangehrmFunctionalTestingPlugin
 .php-cs-fixer.cache
 .php-cs-fixer.php
+
+# Documentación
+apidoc/
+
+# Logs
+logInstall.log
+*.log
+
+# Archivos temporales
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Base de datos
+*.sql
+*.dump
+*.bak
+backup/
+
+# Seguridad
+*.key
+*.pem
+*.crt
+.installed
+
+# Específicos de Portos
+scripts/credentials.txt
+scripts/api-keys.txt
+scripts/temp/

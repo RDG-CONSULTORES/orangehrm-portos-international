@@ -1,0 +1,65 @@
+databases:
+  - name: orangehrm-portos-db
+    databaseName: orangehrm_portos
+    user: orangehrm_user
+    plan: free
+    region: oregon
+
+services:
+  - type: web
+    name: orangehrm-portos-international
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: portos-customization
+    buildCommand: |
+      echo "Building OrangeHRM for Portos International"
+    startCommand: |
+      /opt/render/project/src/scripts/start.sh
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: orangehrm-portos-db
+          property: connectionString
+      - key: ORANGEHRM_DATABASE_HOST
+        fromDatabase:
+          name: orangehrm-portos-db
+          property: host
+      - key: ORANGEHRM_DATABASE_PORT
+        fromDatabase:
+          name: orangehrm-portos-db
+          property: port
+      - key: ORANGEHRM_DATABASE_NAME
+        fromDatabase:
+          name: orangehrm-portos-db
+          property: database
+      - key: ORANGEHRM_DATABASE_USER
+        fromDatabase:
+          name: orangehrm-portos-db
+          property: user
+      - key: ORANGEHRM_DATABASE_PASSWORD
+        fromDatabase:
+          name: orangehrm-portos-db
+          property: password
+      - key: ORANGEHRM_ADMIN_USER
+        value: admin
+      - key: ORANGEHRM_ADMIN_PASSWORD
+        generateValue: true
+      - key: ORANGEHRM_ADMIN_EMAIL
+        value: admin@portosinternational.com
+      - key: ORANGEHRM_ORGANIZATION_NAME
+        value: "Portos International"
+      - key: ORANGEHRM_ORGANIZATION_ADDRESS
+        value: "Monterrey, Nuevo León, México"
+      - key: TZ
+        value: America/Mexico_City
+      - key: PHP_TIMEZONE
+        value: America/Mexico_City
+      - key: ORANGEHRM_LOCALE
+        value: es_MX
+      - key: ORANGEHRM_LANGUAGE
+        value: es
+      - key: ORANGEHRM_CURRENCY
+        value: MXN
+      - key: PORT
+        value: 10000

@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  orangehrm:
+    build: .
+    container_name: orangehrm-portos
+    environment:
+      # Base de datos
+      ORANGEHRM_DATABASE_HOST: db
+      ORANGEHRM_DATABASE_PORT: 3306
+      ORANGEHRM_DATABASE_NAME: orangehrm_portos
+      ORANGEHRM_DATABASE_USER: orangehrm
+      ORANGEHRM_DATABASE_PASSWORD: orangehrm123
+      # Organización
+      ORANGEHRM_ORGANIZATION_NAME: "Portos International"
+      ORANGEHRM_ORGANIZATION_ADDRESS: "Monterrey, Nuevo León, México"
+      # Configuración regional
+      TZ: America/Mexico_City
+      PHP_TIMEZONE: America/Mexico_City
+      ORANGEHRM_LOCALE: es_MX
+      ORANGEHRM_LANGUAGE: es
+      ORANGEHRM_CURRENCY: MXN
+      # Admin
+      ORANGEHRM_ADMIN_USER: admin
+      ORANGEHRM_ADMIN_PASSWORD: admin123
+      ORANGEHRM_ADMIN_EMAIL: admin@portosinternational.com
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html/src
+      - ./scripts:/var/www/html/scripts
+      - ./public:/var/www/html/public
+      - orangehrm_cache:/var/www/html/src/cache
+      - orangehrm_logs:/var/www/html/src/log
+      - orangehrm_config:/var/www/html/src/config
+    depends_on:
+      - db
+    networks:
+      - orangehrm-network
+
+  db:
+    image: mariadb:10.6
+    container_name: orangehrm-portos-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: orangehrm_portos
+      MYSQL_USER: orangehrm
+      MYSQL_PASSWORD: orangehrm123
+      TZ: America/Mexico_City
+    command: 
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_spanish_ci
+      - --default-time-zone=America/Mexico_City
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    networks:
+      - orangehrm-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: orangehrm-portos-phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: rootpassword
+      TZ: America/Mexico_City
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    networks:
+      - orangehrm-network
+
+volumes:
+  db_data:
+  orangehrm_cache:
+  orangehrm_logs:
+  orangehrm_config:
+
+networks:
+  orangehrm-network:
+    driver: bridge
