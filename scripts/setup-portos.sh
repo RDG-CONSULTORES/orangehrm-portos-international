@@ -40,14 +40,14 @@ else
 fi
 
 echo ""
-echo "📦 Paso 1/6: Instalando dependencias de Composer..."
+echo "📦 Paso 1/6: Verificando dependencias..."
 cd /var/www/html
-if [ ! -d "src/vendor" ]; then
-    echo "🔄 Ejecutando composer install..."
-    composer install -d src --no-dev --optimize-autoloader
-    echo "✅ Dependencias instaladas correctamente"
+if [ -d "src/vendor" ]; then
+    echo "✅ Dependencias de Composer instaladas durante build"
 else
-    echo "✅ Dependencias ya instaladas"
+    echo "🔄 Instalando dependencias faltantes..."
+    composer install -d src --no-dev --optimize-autoloader
+    echo "✅ Dependencias instaladas"
 fi
 
 echo ""
