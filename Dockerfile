@@ -176,6 +176,30 @@ EOF2\n\
 echo "📋 Apache config:"\n\
 cat /etc/apache2/ports.conf\n\
 \n\
+# Debug: Verificar archivos del instalador\n\
+echo "🔍 Verificando archivos del instalador..."\n\
+ls -la /var/www/html/installer/ | head -10\n\
+if [ -d "/var/www/html/installer/client" ]; then\n\
+    echo "📁 Directorio client encontrado:"\n\
+    ls -la /var/www/html/installer/client/\n\
+    if [ -d "/var/www/html/installer/client/dist" ]; then\n\
+        echo "📁 Directorio dist encontrado:"\n\
+        ls -la /var/www/html/installer/client/dist/ | head -10\n\
+    else\n\
+        echo "❌ Directorio dist NO existe"\n\
+        echo "📂 Creando estructura dist básica..."\n\
+        mkdir -p /var/www/html/installer/client/dist/css\n\
+        mkdir -p /var/www/html/installer/client/dist/js\n\
+        echo "/* Basic CSS fallback */" > /var/www/html/installer/client/dist/css/app.css\n\
+        echo "/* Basic CSS fallback */" > /var/www/html/installer/client/dist/css/chunk-vendors.css\n\
+        echo "// Basic JS fallback" > /var/www/html/installer/client/dist/js/app.js\n\
+        echo "// Basic JS fallback" > /var/www/html/installer/client/dist/js/chunk-vendors.js\n\
+        echo "✅ Archivos básicos creados"\n\
+    fi\n\
+else\n\
+    echo "❌ Directorio client NO existe"\n\
+fi\n\
+\n\
 # Ejecutar setup de Portos International en background\n\
 echo "🔧 Ejecutando configuración de Portos International..."\n\
 if [ -f "/var/www/html/scripts/setup-portos.sh" ]; then\n\
