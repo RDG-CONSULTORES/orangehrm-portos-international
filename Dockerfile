@@ -101,7 +101,8 @@ RUN mkdir -p /var/www/html/src/cache \
 	/var/www/html/src/log \
 	/var/www/html/src/config \
 	/var/www/html/scripts \
-	/var/www/html/public; \
+	/var/www/html/public \
+	/var/www/html/installer; \
 	chown -R www-data:www-data /var/www/html; \
 	chmod -R 755 /var/www/html; \
 	chmod -R 775 /var/www/html/src/cache /var/www/html/src/log /var/www/html/src/config
