@@ -211,7 +211,20 @@ ls -la /var/www/html/src/vendor/ | head -5\n\
 \n\
 # Ejecutar instalación automática de Portos International\n\
 echo "🚀 Ejecutando instalación automática de Portos International..."\n\
-if [ -f "/var/www/html/scripts/auto-install-portos.sh" ]; then\n\
+\n\
+# Verificar si hay instalación previa fallida\n\
+if [ -f "/var/log/portos-installation.log" ] && grep -q "MySQL server has gone away" /var/log/portos-installation.log 2>/dev/null; then\n\
+    echo "🔧 Detectada instalación fallida con error MySQL - ejecutando reparación..."\n\
+    chmod +x /var/www/html/scripts/fix-mysql-error-install-postgresql.sh\n\
+    /var/www/html/scripts/fix-mysql-error-install-postgresql.sh > /var/log/portos-fix-installation.log 2>&1 &\n\
+    echo "✅ Reparación PostgreSQL iniciada - ver /var/log/portos-fix-installation.log"\n\
+elif [ -f "/var/www/html/scripts/fix-mysql-error-install-postgresql.sh" ]; then\n\
+    echo "🔧 Ejecutando instalación PostgreSQL corregida..."\n\
+    chmod +x /var/www/html/scripts/fix-mysql-error-install-postgresql.sh\n\
+    /var/www/html/scripts/fix-mysql-error-install-postgresql.sh > /var/log/portos-fix-installation.log 2>&1 &\n\
+    echo "✅ Instalación PostgreSQL iniciada - ver /var/log/portos-fix-installation.log"\n\
+    echo "⏳ La instalación corregida tomará 3-4 minutos en completarse"\n\
+elif [ -f "/var/www/html/scripts/auto-install-portos.sh" ]; then\n\
     chmod +x /var/www/html/scripts/auto-install-portos.sh\n\
     /var/www/html/scripts/auto-install-portos.sh > /var/log/portos-installation.log 2>&1 &\n\
     echo "✅ Instalación automática iniciada - ver /var/log/portos-installation.log"\n\

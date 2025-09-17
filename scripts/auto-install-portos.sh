@@ -84,7 +84,27 @@ show_success "Conexión a PostgreSQL establecida"
 show_progress "Ejecutando instalación de OrangeHRM"
 echo "🔧 Instalando con configuración Portos International..."
 
+# FORZAR PostgreSQL: Crear configuración antes de la instalación
+echo "🗄️ Forzando configuración PostgreSQL..."
+mkdir -p src/config
+cat > src/config/database.php <<DBEOF
+<?php
+return [
+    'database' => [
+        'driver' => 'pdo_pgsql',
+        'host' => '$DB_HOST',
+        'port' => '$DB_PORT',
+        'dbname' => '$DB_NAME',
+        'username' => '$DB_USER',
+        'password' => '$DB_PASS',
+        'charset' => 'utf8'
+    ]
+];
+DBEOF
+
+# Usar comando CLI con parámetro específico para PostgreSQL
 php installer/console install:on-new-database \
+    --db-type="pgsql" \
     --db-host="$DB_HOST" \
     --db-port="$DB_PORT" \
     --db-name="$DB_NAME" \
