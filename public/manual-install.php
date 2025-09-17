@@ -4,11 +4,46 @@
  * Ejecutar directamente en browser: /public/manual-install.php
  */
 
-// Variables de configuración
-$DATABASE_URL = $_ENV['DATABASE_URL'] ?? '';
+// Intentar cargar configuración de entorno
+$envConfigPath = '/var/www/html/src/config/env.php';
+if (file_exists($envConfigPath)) {
+    require_once $envConfigPath;
+    $DATABASE_URL = getDatabaseUrl();
+} else {
+    // Variables de configuración - intentar múltiples fuentes
+    $DATABASE_URL = $_ENV['DATABASE_URL'] ?? $_SERVER['DATABASE_URL'] ?? getenv('DATABASE_URL') ?? '';
+    
+    // Si aún no está disponible, intentar leer desde configuración del sistema
+    if (empty($DATABASE_URL)) {
+        // Intentar ejecutar un comando para obtener la variable
+        $DATABASE_URL = trim(shell_exec('echo $DATABASE_URL 2>/dev/null') ?? '');
+    }
+}
 
 if (empty($DATABASE_URL)) {
-    die('❌ ERROR: DATABASE_URL no encontrada en variables de entorno');
+    // Mostrar información de diagnóstico
+    echo "<!DOCTYPE html>\n";
+    echo "<html><head><meta charset='utf-8'><title>Diagnóstico Manual Installer</title></head><body>\n";
+    echo "<h1>🔍 Diagnóstico - Variables de Entorno</h1>\n";
+    echo "<pre>\n";
+    echo "❌ ERROR: DATABASE_URL no encontrada en variables de entorno\n\n";
+    echo "🔍 DIAGNÓSTICO:\n";
+    echo "• \$_ENV['DATABASE_URL']: " . (isset($_ENV['DATABASE_URL']) ? "✅ Encontrada" : "❌ No encontrada") . "\n";
+    echo "• \$_SERVER['DATABASE_URL']: " . (isset($_SERVER['DATABASE_URL']) ? "✅ Encontrada" : "❌ No encontrada") . "\n";
+    echo "• getenv('DATABASE_URL'): " . (getenv('DATABASE_URL') ? "✅ Encontrada" : "❌ No encontrada") . "\n";
+    echo "• shell_exec: " . (shell_exec('echo $DATABASE_URL 2>/dev/null') ? "✅ Disponible" : "❌ No disponible") . "\n\n";
+    echo "🛠️ POSIBLES SOLUCIONES:\n";
+    echo "1. Verificar que Apache esté configurado para pasar variables de entorno\n";
+    echo "2. Reiniciar el contenedor/aplicación\n";
+    echo "3. Verificar configuración de Render\n\n";
+    echo "🔧 CONFIGURACIÓN NECESARIA EN APACHE:\n";
+    echo "   PassEnv DATABASE_URL\n";
+    echo "   O bien:\n";
+    echo "   SetEnv DATABASE_URL valor\n\n";
+    echo "🌐 Volver a: https://orangehrm-portos-international.onrender.com\n";
+    echo "</pre>\n";
+    echo "</body></html>\n";
+    exit;
 }
 
 // Parsear DATABASE_URL
