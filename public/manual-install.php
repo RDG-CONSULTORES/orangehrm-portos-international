@@ -17,6 +17,25 @@ if (file_exists($envConfigPath)) {
     if (empty($DATABASE_URL)) {
         // Intentar ejecutar un comando para obtener la variable
         $DATABASE_URL = trim(shell_exec('echo $DATABASE_URL 2>/dev/null') ?? '');
+        
+        // Si shell_exec no funciona, intentar leer desde /proc/1/environ
+        if (empty($DATABASE_URL)) {
+            $environ = @file_get_contents('/proc/1/environ');
+            if ($environ !== false) {
+                $env_vars = explode("\0", $environ);
+                foreach ($env_vars as $var) {
+                    if (strpos($var, 'DATABASE_URL=') === 0) {
+                        $DATABASE_URL = substr($var, 13); // Remove 'DATABASE_URL='
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Como último recurso, intentar un método más directo
+        if (empty($DATABASE_URL)) {
+            $DATABASE_URL = trim(shell_exec('printenv DATABASE_URL 2>/dev/null') ?? '');
+        }
     }
 }
 
@@ -27,11 +46,27 @@ if (empty($DATABASE_URL)) {
     echo "<h1>🔍 Diagnóstico - Variables de Entorno</h1>\n";
     echo "<pre>\n";
     echo "❌ ERROR: DATABASE_URL no encontrada en variables de entorno\n\n";
-    echo "🔍 DIAGNÓSTICO:\n";
+    echo "🔍 DIAGNÓSTICO DETALLADO:\n";
     echo "• \$_ENV['DATABASE_URL']: " . (isset($_ENV['DATABASE_URL']) ? "✅ Encontrada" : "❌ No encontrada") . "\n";
     echo "• \$_SERVER['DATABASE_URL']: " . (isset($_SERVER['DATABASE_URL']) ? "✅ Encontrada" : "❌ No encontrada") . "\n";
     echo "• getenv('DATABASE_URL'): " . (getenv('DATABASE_URL') ? "✅ Encontrada" : "❌ No encontrada") . "\n";
-    echo "• shell_exec: " . (shell_exec('echo $DATABASE_URL 2>/dev/null') ? "✅ Disponible" : "❌ No disponible") . "\n\n";
+    
+    $shell_test = trim(shell_exec('echo TEST 2>/dev/null') ?? '');
+    echo "• shell_exec función: " . ($shell_test === 'TEST' ? "✅ Funcional" : "❌ No funcional") . "\n";
+    
+    $printenv_test = trim(shell_exec('printenv DATABASE_URL 2>/dev/null') ?? '');
+    echo "• printenv DATABASE_URL: " . (!empty($printenv_test) ? "✅ Encontrada" : "❌ No encontrada") . "\n";
+    
+    $environ_readable = is_readable('/proc/1/environ');
+    echo "• /proc/1/environ: " . ($environ_readable ? "✅ Accesible" : "❌ No accesible") . "\n";
+    
+    if ($environ_readable) {
+        $environ = @file_get_contents('/proc/1/environ');
+        $has_db_url = $environ !== false && strpos($environ, 'DATABASE_URL=') !== false;
+        echo "• DATABASE_URL en environ: " . ($has_db_url ? "✅ Encontrada" : "❌ No encontrada") . "\n";
+    }
+    
+    echo "\n";
     echo "🛠️ POSIBLES SOLUCIONES:\n";
     echo "1. Verificar que Apache esté configurado para pasar variables de entorno\n";
     echo "2. Reiniciar el contenedor/aplicación\n";
