@@ -1,0 +1,108 @@
+#!/usr/bin/env php
+<?php
+/**
+ * OrangeHRM Symfony Console
+ * Entry point for command-line operations
+ */
+
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Output\ConsoleOutput;
+
+// Set environment
+$env = 'prod';
+$debug = false;
+
+// Load autoloader
+$loaderPaths = [
+    __DIR__ . '/src/vendor/autoload.php',
+    __DIR__ . '/vendor/autoload.php'
+];
+
+$loader = null;
+foreach ($loaderPaths as $path) {
+    if (file_exists($path)) {
+        $loader = require $path;
+        break;
+    }
+}
+
+if (!$loader) {
+    // Minimal autoloader
+    spl_autoload_register(function ($class) {
+        $file = __DIR__ . '/src/' . str_replace('\\', '/', $class) . '.php';
+        if (file_exists($file)) {
+            require $file;
+        }
+    });
+}
+
+// Load kernel
+$kernelFile = __DIR__ . '/src/Kernel.php';
+if (file_exists($kernelFile)) {
+    require_once $kernelFile;
+    
+    if (class_exists('Kernel')) {
+        $kernel = new Kernel($env, $debug);
+        $kernel->boot();
+        
+        $application = $kernel->getContainer()->get('console.application');
+        if ($application) {
+            $application->run();
+            exit;
+        }
+    }
+}
+
+// Fallback console application
+$application = new Application('OrangeHRM Console', '5.7');
+
+// Add basic commands
+$application->add(new class extends \Symfony\Component\Console\Command\Command {
+    protected static $defaultName = 'orangehrm:status';
+    
+    protected function configure() {
+        $this->setDescription('Show OrangeHRM status');
+    }
+    
+    protected function execute($input, $output) {
+        $output->writeln('<info>OrangeHRM Status for Portos International</info>');
+        $output->writeln('');
+        
+        // Check database
+        try {
+            $dsn = "pgsql:host=dpg-d34pm0ffte5s73abeq0g-a.oregon-postgres.render.com;port=5432;dbname=orangehrm_portos";
+            $pdo = new PDO($dsn, "orangehrm_user", "A5xg14Ns2M4QUQ7bu0fE2GsU6WFzyOaX");
+            $stmt = $pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name LIKE 'ohrm_%'");
+            $tableCount = $stmt->fetchColumn();
+            $output->writeln("<info>✅ Database: Connected ($tableCount tables)</info>");
+        } catch (Exception $e) {
+            $output->writeln("<error>❌ Database: " . $e->getMessage() . "</error>");
+        }
+        
+        // Check configuration
+        $configFile = __DIR__ . '/src/config/database.php';
+        if (file_exists($configFile)) {
+            $output->writeln('<info>✅ Configuration: Found</info>');
+        } else {
+            $output->writeln('<error>❌ Configuration: Missing</error>');
+        }
+        
+        $output->writeln('');
+        $output->writeln('<comment>Admin credentials:</comment>');
+        $output->writeln('Username: admin');
+        $output->writeln('Password: PortosAdmin123!');
+        
+        return 0;
+    }
+});
+
+$input = new ArgvInput();
+$output = new ConsoleOutput();
+
+try {
+    $application->run($input, $output);
+} catch (Exception $e) {
+    $output->writeln('<error>Console error: ' . $e->getMessage() . '</error>');
+    exit(1);
+}
