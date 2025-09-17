@@ -1,30 +1,44 @@
 <?php
 /**
- * OrangeHRM is a comprehensive Human Resource Management (HRM) System that captures
- * all the essential functionalities required for any enterprise.
- * Copyright (C) 2006 OrangeHRM Inc., http://www.orangehrm.com
- *
- * OrangeHRM is free software: you can redistribute it and/or modify it under the terms of
- * the GNU General Public License as published by the Free Software Foundation, either
- * version 3 of the License, or (at your option) any later version.
- *
- * OrangeHRM is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with OrangeHRM.
- * If not, see <https://www.gnu.org/licenses/>.
+ * OrangeHRM Main Entry Point - Portos International
+ * Bypasses installer and goes directly to functional system
  */
 
-use OrangeHRM\Config\Config;
+// Force installation to be considered complete
+// This is the main entry point that was redirecting to the installer
 
-require realpath(__DIR__ . '/src/vendor/autoload.php');
+// Set proper working directory
+chdir(__DIR__);
 
-/* For logging PHP errors */
-include_once('./src/config/log_settings.php');
+// Ensure proper server variables
+if (!isset($_SERVER["REQUEST_URI"])) {
+    $_SERVER["REQUEST_URI"] = "/";
+}
 
-if (!Config::isInstalled()) {
-    header('Location: ./installer/index.php');
+if (!isset($_SERVER["HTTP_HOST"])) {
+    $_SERVER["HTTP_HOST"] = $_SERVER["SERVER_NAME"] ?? "localhost";
+}
+
+// Check if this is a direct file request
+$requestUri = $_SERVER["REQUEST_URI"];
+$filePath = __DIR__ . $requestUri;
+
+// If requesting a specific PHP file that exists, include it
+if (preg_match("/\.php$/", $requestUri) && file_exists($filePath) && $requestUri !== "/index.php") {
+    require_once $filePath;
+    exit;
+}
+
+// For all other requests, route to web application
+if (file_exists(__DIR__ . "/web/index.php")) {
+    require_once __DIR__ . "/web/index.php";
 } else {
-    header("Location: ./web/index.php/auth/login");
+    // Fallback
+    header("Content-Type: text/html; charset=UTF-8");
+    echo "<!DOCTYPE html>";
+    echo "<html><head><title>OrangeHRM - Error</title></head>";
+    echo "<body style=\"font-family: Arial; padding: 50px; text-align: center;\">";
+    echo "<h1 style=\"color: #ff6600;\">❌ Error</h1>";
+    echo "<p>Web application not found.</p>";
+    echo "</body></html>";
 }
